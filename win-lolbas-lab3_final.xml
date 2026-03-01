@@ -1,0 +1,265 @@
+
+<group name="windows,sysmon,attack_lab,lolbas">
+
+  <rule id="210100" level="0">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\addinutil\.exe$</field>
+    <description>Base AddinUtil.exe via Sysmon on $(win.system.computer)</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <rule id="210101" level="0">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\addinutil\.exe$</field>
+    <description>Base AddinUtil.exe via Security Log on $(win.system.computer)</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <rule id="210102" level="12">
+    <if_sid>210100,210101</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)[-\/](?:addinroot|pipelineroot)\s*:\s*["']?[A-Za-z]:\\(?:users|public|temp|tmp|downloads|desktop|appdata|programdata)(?:\\|["']|$)</field>
+    <description>Suspicious AddinUtil.exe: sensitive path argument on $(win.system.computer)</description>
+    <mitre><id>T1218</id></mitre>
+  </rule>
+
+  <rule id="210103" level="15">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)\\addinutil\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(?:bash|bitsadmin|calc|certutil|cmd|cmstp|cscript|installutil|mshta|msiexec|powershell|pwsh|regsvr32|rundll32|wscript)\.exe$</field>
+    <description>Critical AddinUtil.exe: child process [$(win.eventdata.image)] spawned on $(win.system.computer)</description>
+    <mitre><id>T1218</id><id>T1059</id></mitre>
+  </rule>
+
+  <rule id="210104" level="15">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.parentProcessName" type="pcre2">(?i)\\addinutil\.exe$</field>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\(?:bash|bitsadmin|calc|certutil|cmd|cmstp|cscript|installutil|mshta|msiexec|powershell|pwsh|regsvr32|rundll32|wscript)\.exe$</field>
+    <description>Critical AddinUtil.exe: child process [$(win.eventdata.newProcessName)] spawned on $(win.system.computer)</description>
+    <mitre><id>T1218</id><id>T1059</id></mitre>
+  </rule>
+
+  <rule id="210105" level="13">
+    <if_sid>61605</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\addinutil\.exe$</field>
+    <description>High AddinUtil.exe: outbound connection to $(win.eventdata.destinationIp):$(win.eventdata.destinationPort)</description>
+    <mitre><id>T1218</id></mitre>
+  </rule>
+
+  <rule id="210106" level="10">
+    <if_sid>61613</if_sid>
+    <field name="win.eventdata.targetFilename" type="pcre2">(?i)\\Addins\.store$</field>
+    <description>Suspicious AddinUtil.exe: Addins.store created at [$(win.eventdata.targetFilename)]</description>
+    <mitre><id>T1218</id></mitre>
+  </rule>
+
+  <rule id="210107" level="13">
+    <if_sid>210106</if_sid>
+    <field name="win.eventdata.targetFilename" type="pcre2">(?i)[A-Za-z]:\\(?:users|public|temp|tmp|downloads|desktop|appdata|programdata)\\</field>
+    <description>High AddinUtil.exe: Addins.store in sensitive directory [$(win.eventdata.targetFilename)]</description>
+    <mitre><id>T1218</id></mitre>
+  </rule>
+
+  <rule id="210108" level="15">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image|win.eventdata.originalFileName" type="pcre2">(?i)\\ysoserial\.exe$</field>
+    <description>Critical: ysoserial payload generator detected via Sysmon on $(win.system.computer)</description>
+    <mitre><id>T1218</id></mitre>
+  </rule>
+
+  <rule id="210109" level="15">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName|win.eventdata.originalFileName" type="pcre2">(?i)\\ysoserial\.exe$</field>
+    <description>Critical: ysoserial payload generator detected via Security Log on $(win.system.computer)</description>
+    <mitre><id>T1218</id></mitre>
+  </rule>
+
+
+  <rule id="210200" level="12">
+    <if_group>windows</if_group>
+    <field name="win.system.eventID" type="pcre2">^4104$</field>
+    <field name="win.eventdata.scriptBlockText" type="pcre2">(?i)ms-appinstaller:\/\/(?:\?source=)?https?:</field>
+    <description>Suspicious AppInstaller.exe: ms-appinstaller URI in PowerShell ScriptBlock on $(win.system.computer)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210201" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\appinstaller\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)ms-appinstaller:\/\/(?:\?source=)?https?:</field>
+    <description>Suspicious AppInstaller.exe: ms-appinstaller URI execution on $(win.system.computer)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210202" level="12">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\appinstaller\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)ms-appinstaller:\/\/(?:\?source=)?https?:</field>
+    <description>Suspicious AppInstaller.exe: ms-appinstaller URI execution on $(win.system.computer)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210203" level="10">
+    <if_sid>61613</if_sid>
+    <field name="win.eventdata.targetFilename" type="pcre2">(?i)\\Microsoft\.DesktopAppInstaller_[^\\]+\\AC\\INetCache\\</field>
+    <description>Suspicious AppInstaller.exe: file cached in INetCache on $(win.system.computer)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210204" level="10">
+    <if_sid>61605</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\appinstaller\.exe$</field>
+    <description>Medium AppInstaller.exe: network connection to $(win.eventdata.destinationIp)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+
+  <rule id="210300" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\at\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(?:[-\/]interactive|\\\\[A-Za-z0-9][A-Za-z0-9._-]*)</field>
+    <description>Suspicious At.exe: interactive or remote scheduled task on $(win.system.computer)</description>
+    <mitre><id>T1053.002</id></mitre>
+  </rule>
+
+  <rule id="210301" level="12">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\at\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(?:[-\/]interactive|\\\\[A-Za-z0-9][A-Za-z0-9._-]*)</field>
+    <description>Suspicious At.exe: interactive or remote scheduled task on $(win.system.computer)</description>
+    <mitre><id>T1053.002</id></mitre>
+  </rule>
+
+
+  <rule id="210400" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\bitsadmin\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)[-\/](?:transfer|addfile|setnotifycmdline|resume)\b</field>
+    <description>Suspicious Bitsadmin.exe: download/persistence flag detected on $(win.system.computer)</description>
+    <mitre><id>T1197</id><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210401" level="12">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\bitsadmin\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)[-\/](?:transfer|addfile|setnotifycmdline|resume)\b</field>
+    <description>Suspicious Bitsadmin.exe: download/persistence flag detected on $(win.system.computer)</description>
+    <mitre><id>T1197</id><id>T1105</id></mitre>
+  </rule>
+
+
+  <rule id="210500" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\certreq\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(?=.*[-\/]post)(?=.*[-\/]config)</field>
+    <description>Suspicious CertReq.exe: -Post -Config download on $(win.system.computer)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210501" level="12">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\certreq\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(?=.*[-\/]post)(?=.*[-\/]config)</field>
+    <description>Suspicious CertReq.exe: -Post -Config download on $(win.system.computer)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210600" level="0">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\certutil\.exe$</field>
+    <description>Base CertUtil.exe via Sysmon on $(win.system.computer)</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <rule id="210601" level="0">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\certutil\.exe$</field>
+    <description>Base CertUtil.exe via Security Log on $(win.system.computer)</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <rule id="210602" level="12">
+    <if_sid>210600,210601</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)[-\/](?:urlcache|verifyurl|verifyctl|url)\b</field>
+    <description>Suspicious CertUtil.exe: remote file download on $(win.system.computer)</description>
+    <mitre><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210603" level="12">
+    <if_sid>210600,210601</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)[-\/](?:encode|encodehex|decode|decodehex)\b</field>
+    <description>Defense Evasion CertUtil.exe: encode/decode operation on $(win.system.computer)</description>
+    <mitre><id>T1140</id></mitre>
+  </rule>
+
+
+  <rule id="210700" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\ftp\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)[-\/]s:</field>
+    <description>Suspicious Ftp.exe: script file execution on $(win.system.computer)</description>
+    <mitre><id>T1202</id><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210701" level="12">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\ftp\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)[-\/]s:</field>
+    <description>Suspicious Ftp.exe: script file execution on $(win.system.computer)</description>
+    <mitre><id>T1202</id><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210702" level="15">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)\\ftp\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(?:cmd|powershell|pwsh)\.exe$</field>
+    <description>Critical Ftp.exe: shell [$(win.eventdata.image)] spawned on $(win.system.computer)</description>
+    <mitre><id>T1202</id><id>T1059</id></mitre>
+  </rule>
+
+  <rule id="210703" level="15">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.parentProcessName" type="pcre2">(?i)\\ftp\.exe$</field>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\(?:cmd|powershell|pwsh)\.exe$</field>
+    <description>Critical Ftp.exe: shell spawned on $(win.system.computer)</description>
+    <mitre><id>T1202</id><id>T1059</id></mitre>
+  </rule>
+
+
+  <rule id="210800" level="0">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\hh\.exe$</field>
+    <description>Base Hh.exe via Sysmon on $(win.system.computer)</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <rule id="210801" level="0">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\hh\.exe$</field>
+    <description>Base Hh.exe via Security Log on $(win.system.computer)</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <rule id="210802" level="12">
+    <if_sid>210800,210801</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(?=.*\.chm)(?=.*(?:https?:|\\\\[A-Za-z0-9][A-Za-z0-9._-]*))</field>
+    <description>Suspicious Hh.exe: remote CHM via HTTP or UNC path on $(win.system.computer)</description>
+    <mitre><id>T1218.001</id><id>T1105</id></mitre>
+  </rule>
+
+  <rule id="210803" level="15">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)\\hh\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(?:cmd|cscript|mshta|powershell|pwsh|regsvr32|rundll32|wscript)\.exe$</field>
+    <description>Critical Hh.exe: child process [$(win.eventdata.image)] spawned on $(win.system.computer)</description>
+    <mitre><id>T1218.001</id><id>T1059</id></mitre>
+  </rule>
+
+  <rule id="210804" level="15">
+    <if_sid>60109</if_sid>
+    <field name="win.eventdata.parentProcessName" type="pcre2">(?i)\\hh\.exe$</field>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)\\(?:cmd|cscript|mshta|powershell|pwsh|regsvr32|rundll32|wscript)\.exe$</field>
+    <description>Critical Hh.exe: child process spawned on $(win.system.computer)</description>
+    <mitre><id>T1218.001</id><id>T1059</id></mitre>
+  </rule>
+
+</group>
